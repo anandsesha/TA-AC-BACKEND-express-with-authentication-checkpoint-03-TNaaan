@@ -20,7 +20,7 @@ var app = express();
 
 // Connect to MongoDB
 mongoose
-  .connect('mongodb://127.0.0.1:27017/expense-tracker-DB')
+  .connect('mongodb://127.0.0.1:27017/expense-tracker-DB4')
   .then(() => {
     console.log('Connected to DB');
   })
@@ -47,7 +47,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: 'mongodb://127.0.0.1:27017/expense-tracker-DB',
+      mongoUrl: 'mongodb://127.0.0.1:27017/expense-tracker-DB4',
     }),
   })
 );
