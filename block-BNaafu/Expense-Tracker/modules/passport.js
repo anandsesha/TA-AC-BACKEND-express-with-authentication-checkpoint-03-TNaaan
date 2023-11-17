@@ -12,52 +12,96 @@ passport.use(
       callbackURL: 'http://localhost:3000/auth/github/callback',
     },
     async (accessToken, refreshToken, profile, done) => {
-      console.log(profile);
-      var profileData = {
-        name: profile.displayName,
-        email: profile._json.email,
-        username: profile.username,
-        photo: profile._json.avatar_url,
-      };
+      try {
+        console.log(profile);
 
-      // Before saving the obtained userInfo, check if the user exists in the db. If not create and save.
-      var user = await User.findOne({ email: profile._json.email });
-      if (!user) {
-        var createdUser = await User.create(profileData);
-        done(null, createdUser);
-      } else {
-        done(null, user);
+        // Find the user based on the OAuth ID and provider
+        const user = await User.findOne({
+          'logins.method': 'github',
+          'logins.oauthId': profile.id,
+        });
+
+        if (!user) {
+          // If the user doesn't exist, create a new user
+          const profileData = {
+            name: profile.displayName,
+            email: profile._json.email,
+            username: profile.username,
+            photo: profile._json.avatar_url,
+            logins: [
+              {
+                method: 'github',
+                oauthId: profile.id,
+                providerId: profile.id,
+                accessToken: accessToken,
+              },
+            ],
+          };
+
+          const createdUser = await User.create(profileData);
+          return done(null, createdUser);
+        } else {
+          // If the user exists, update the access token (if needed) and return the user
+          if (user.logins[0].accessToken !== accessToken) {
+            user.logins[0].accessToken = accessToken;
+            await user.save();
+          }
+          return done(null, user);
+        }
+      } catch (error) {
+        return done(error);
       }
     }
   )
 );
 
 passport.use(
-  // we are using Straegy - passport-google-oauth2
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: 'http://localhost:3000/auth/google/callback',
       passReqToCallback: true,
-      // scope: ['email', 'profile'],
     },
     async (request, accessToken, refreshToken, profile, done) => {
-      console.log(profile);
-      var profileData = {
-        name: profile.displayName,
-        email: profile.email,
-        username: profile.given_name,
-        photo: profile.picture,
-      };
+      try {
+        console.log(profile);
 
-      // Before saving the obtained userInfo, check if the user exists in the db. If not create and save.
-      var user = await User.findOne({ email: profile.email });
-      if (!user) {
-        var createdUser = await User.create(profileData);
-        done(null, createdUser);
-      } else {
-        done(null, user);
+        // Find the user based on the OAuth ID and provider
+        const user = await User.findOne({
+          'logins.method': 'google',
+          'logins.oauthId': profile.sub,
+        });
+
+        if (!user) {
+          // If the user doesn't exist, create a new user
+          const profileData = {
+            name: profile.displayName,
+            email: profile.email,
+            username: profile.given_name,
+            photo: profile.picture,
+            logins: [
+              {
+                method: 'google',
+                oauthId: profile.sub, // can use profile.id here as well. Its the same as profile.sub
+                providerId: profile.sub,
+                accessToken: accessToken,
+              },
+            ],
+          };
+
+          const createdUser = await User.create(profileData);
+          return done(null, createdUser);
+        } else {
+          // If the user exists, update the access token (if needed) and return the user
+          if (user.logins[0].accessToken !== accessToken) {
+            user.logins[0].accessToken = accessToken;
+            await user.save();
+          }
+          return done(null, user);
+        }
+      } catch (error) {
+        return done(error);
       }
     }
   )

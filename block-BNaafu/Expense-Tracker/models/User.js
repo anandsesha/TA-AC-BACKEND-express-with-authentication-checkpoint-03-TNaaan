@@ -1,12 +1,50 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var userSchema = new Schema(
+// var userSchema = new Schema(
+//   {
+//     name: { type: String, required: true },
+//     email: { type: String, required: true, unique: true },
+//     username: { type: String, required: true, unique: true },
+//     photo: { type: String, required: true },
+//   },
+//   { timestamps: true }
+// );
+
+// const userSchema = new Schema(
+//   {
+//     name: { type: String, required: true },
+//     email: { type: String, required: true }, // dont give unique: true here if you want to allow users to sign up with the same email address using different OAuth providers. Else it will fail saying dupicate entry in DB
+//     username: { type: String, required: true },
+//     photo: { type: String, default: '/images/default-photo.jpg' }, // Default or placeholder photo
+//     password: {
+//       type: String,
+//       required: function () {
+//         return (
+//           this.isModified('password') || (this.password && !this.oauthId) // Ensure password is required only for local email/password login
+//         );
+//       },
+//     },
+//     oauthId: { type: String }, // Unique identifier from the OAuth provider. But the unique: true was removed - the case if users have accounts with the same OAuth provider but on different platforms (e.g., Google and GitHub)
+//     accessToken: { type: String }, // Token obtained during OAuth authentication
+//   },
+//   { timestamps: true }
+// );
+
+const userSchema = new Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     username: { type: String, required: true, unique: true },
-    photo: { type: String, required: true },
+    photo: { type: String },
+    password: { type: String }, // For local login
+    logins: [
+      {
+        method: { type: String, required: true }, // 'local', 'github', 'google', etc.
+        oauthId: { type: String }, // Unique identifier from the OAuth provider
+        accessToken: { type: String }, // Token obtained during OAuth authentication
+      },
+    ],
   },
   { timestamps: true }
 );
