@@ -14,13 +14,14 @@ require('dotenv').config();
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var dashboardRouter = require('./routes/dashboard');
 const passport = require('passport');
 
 var app = express();
 
 // Connect to MongoDB
 mongoose
-  .connect('mongodb://127.0.0.1:27017/expense-tracker-DB4')
+  .connect('mongodb://127.0.0.1:27017/expense-tracker-DB6')
   .then(() => {
     console.log('Connected to DB');
   })
@@ -47,7 +48,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: 'mongodb://127.0.0.1:27017/expense-tracker-DB4',
+      mongoUrl: 'mongodb://127.0.0.1:27017/expense-tracker-DB6',
     }),
   })
 );
@@ -61,6 +62,7 @@ app.use(flash());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/dashboard', dashboardRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

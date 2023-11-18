@@ -59,3 +59,27 @@ The user decides to log in using GitHub OAuth.
 The OAuth provider (GitHub) returns user information, including an oauthId that uniquely identifies the user on GitHub.
 Your system checks if a user with the given oauthId already exists in the logins array of the user in the users collection.
 If found, the system updates the access token or performs any necessary actions. If not found, a new entry is added to the logins array.
+
+<!-- Local Login and auth using Nodemailer -->
+
+Schema Update: You've updated your user schema to include fields for email verification (isVerified and verificationToken).
+Register Form: You've implemented a registration form to capture user data.
+Nodemailer: You've created a nodemailer.js file and implemented the logic to send verification emails. This includes the URL in the email that users will click to verify their email addresses.
+Post Method: In your registration route's post method, you're now calling the sendVerificationEmail function after creating a new user to trigger the email verification process.
+
+<!-- ********************  -->
+
+Implemented -
+
+- 3 logins in 1 DB -> local login using passport-local strategy (nodemailer verification is NOT implemented!!!), and OATuth using GItHub and Google
+
+(A user can register & then login using email/password or he/she can directly login using social OAuth. Structure schema so that all 3 login data should be saved in same document for a single user.)
+
+Yet to do -
+
+1. All Views - Dashboard all views (mainly list of income + list of expenses + list of savings calculated) + left sidebar in dashboard filter income by date and category.
+2. routes inside Dashboard - including onboarding (Add income + Add expenses forms) + logout in dashboard page
+3. Home page - reset password option set during local login
+4. Nodemailer proper implementation (sending email notifications)
+
+<!-- ******************* -->

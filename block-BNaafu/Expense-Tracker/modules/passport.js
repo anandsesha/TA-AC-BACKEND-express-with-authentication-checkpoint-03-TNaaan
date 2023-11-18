@@ -3,6 +3,7 @@ var GitHubStrategy = require('passport-github').Strategy;
 var GoogleStrategy = require('passport-google-oauth2').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('../models/User');
+var bcrypt = require('bcrypt');
 
 passport.use(
   new GitHubStrategy(
@@ -112,21 +113,46 @@ console.log(process.env.GOOGLE_CLIENT_SECRET);
 
 //Local Login Authentication using Passport - strategy -> passport-local
 //This module lets you authenticate using a username and password in your Node.js applications
+// passport.use(
+//   new LocalStrategy(function (username, password, done) {
+//     User.findOne({ username: username }, function (err, user) {
+//       if (err) {
+//         return done(err);
+//       }
+//       if (!user) {
+//         return done(null, false);
+//       }
+//       if (!user.verifyPassword(password)) {
+//         return done(null, false);
+//       }
+//       return done(null, user);
+//     });
+//   })
+// );
+
 passport.use(
-  new LocalStrategy(function (username, password, done) {
-    User.findOne({ username: username }, function (err, user) {
-      if (err) {
-        return done(err);
+  new LocalStrategy(
+    { usernameField: 'email' },
+    async (email, password, done) => {
+      try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+          return done(null, false, { message: 'Incorrect email.' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+          return done(null, false, { message: 'Incorrect password.' });
+        }
+
+        return done(null, user);
+      } catch (error) {
+        return done(error);
       }
-      if (!user) {
-        return done(null, false);
-      }
-      if (!user.verifyPassword(password)) {
-        return done(null, false);
-      }
-      return done(null, user);
-    });
-  })
+    }
+  )
 );
 
 // from the Strategy function, it takes the user as a param and adds his user.id into the "session". The cookie in browser should have a sessionid now.
