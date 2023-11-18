@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+const bcrypt = require('bcrypt');
 
 // var userSchema = new Schema(
 //   {
@@ -34,10 +35,12 @@ var Schema = mongoose.Schema;
 const userSchema = new Schema(
   {
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true }, // dont keep unique true for email, as an OAUth login might have the same email as local login user.
+    username: { type: String, required: true },
     photo: { type: String },
     password: { type: String }, // For local login
+    isVerified: { type: Boolean, default: false }, // For email verification
+    verificationToken: { type: String }, // For email verification
     logins: [
       {
         method: { type: String, required: true }, // 'local', 'github', 'google', etc.

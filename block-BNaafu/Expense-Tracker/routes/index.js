@@ -3,6 +3,8 @@ const passport = require('passport');
 var User = require('../models/User');
 var router = express.Router();
 
+var nodemailer = require('../modules/nodemailer');
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index');
@@ -26,7 +28,7 @@ router.get(
     failureRedirect: '/failure',
   }),
   (req, res, next) => {
-    res.redirect('/success');
+    res.redirect('/dashboard');
   }
 );
 
@@ -38,7 +40,7 @@ router.get(
 router.get(
   '/auth/google/callback',
   passport.authenticate('google', {
-    successRedirect: '/success',
+    successRedirect: '/dashboard',
     failureRedirect: '/failure',
   })
 );
@@ -49,11 +51,51 @@ router.get('/register', (req, res, next) => {
   res.render('register');
 });
 router.post('/register', async (req, res, next) => {
-  var newUser = await User.create(req.body);
-  console.log(`inside user.create() router`);
-  res.redirect('/localLogin');
+  try {
+    var newUser = await User.create(req.body);
+    console.log(`inside user.create() router`);
+
+    // Send a verification email using the function
+    nodemailer.sendVerificationEmail(newUser.email, newUser.verificationToken);
+
+    res.redirect('/localLogin');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
+router.get('/login', (req, res, next) => {
+  res.render('loginForm');
+});
+
+// Handle login
+router.post(
+  '/login',
+  passport.authenticate('local', {
+    successRedirect: '/dashboard',
+    failureRedirect: '/login',
+    failureFlash: true, // Enable flash messages for failed login
+  })
+);
+
+// router.post('/login', async (req, res, next) => {
+//   const { email, password } = req.body;
+
+//   // Check credentials against the database
+//   const user = await User.findOne({ email });
+
+//   if (!user || !user.verifyPassword(password)) {
+//     return res.redirect('/login'); // Redirect on login failure
+//   }
+
+//   // Create a session and redirect on successful login
+//   req.session.user = user;
+
+//   res.redirect('/dashboard');
+// });
+
+//for passport local stategy login routes
 router.get('/localLogin', (req, res, next) => {
   res.render('loginForm');
 });
@@ -61,7 +103,7 @@ router.get('/localLogin', (req, res, next) => {
 router.post(
   '/localLogin',
   passport.authenticate('local', {
-    successRedirect: '/success',
+    successRedirect: '/dashboard',
     failureRedirect: '/failure',
   })
 );
